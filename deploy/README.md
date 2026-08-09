@@ -1,6 +1,10 @@
 # Running the daemon as a service
 
-Use one service supervisor for a host. Do not also run `local-device-bridge daemon` in a terminal, or two processes will compete for port `8787`.
+Use one service supervisor for a host. The setup wizard installs the correct
+per-user supervisor automatically when the dashboard is enabled. You can also
+repair it with `local-device-bridge service install`. Do not also run
+`local-device-bridge daemon` in a terminal, or two processes will compete for
+port `8787`.
 
 The service definitions restart the daemon after an unexpected exit. This is the supported long-running installation path and prevents a crashed or manually replaced daemon from leaving the dashboard offline.
 

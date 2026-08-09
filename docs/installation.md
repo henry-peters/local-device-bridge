@@ -112,6 +112,25 @@ Use the arrow keys and Enter in a real terminal. In CI, a pipe, or a redirected
 session the same wizard automatically falls back to numbered choices and plain
 text so it remains scriptable. `NO_COLOR=1` disables ANSI colors.
 
+When the dashboard is enabled, setup also installs the bridge as a per-user
+operating-system service. macOS uses `launchd`, Linux uses a user `systemd`
+unit, and Windows uses a logon task. This keeps one daemon process running
+after login/restart and restarts it after an unexpected exit. Do not also run
+`local-device-bridge daemon` manually after setup; use `local-device-bridge
+service uninstall` first if you intentionally want foreground terminal mode.
+
+You can repair the service at any time with:
+
+```sh
+local-device-bridge service install
+```
+
+Remove only the automatic service with:
+
+```sh
+local-device-bridge service uninstall
+```
+
 The installer runs the setup wizard automatically and asks whether the
 dashboard should open automatically or whether the installation should remain
 CLI-first. Running
