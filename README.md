@@ -94,6 +94,62 @@ See [installation.md](docs/installation.md) for service, upgrade, certificate,
 and uninstall instructions. See [agent-integration.md](docs/agent-integration.md)
 for connecting an AI agent and pairing supported devices.
 
+## Video tutorials
+
+The project has two complementary tutorial flows: a dashboard walkthrough and
+an interactive CLI/phone setup walkthrough. The written steps below are safe
+to publish and cover both flows.
+
+The original recordings used for this guide are intentionally not included in
+the public repository because they contain private demo device names, LAN
+addresses, and a visible browser QR credential. Publish only redacted copies
+if you want to add video files to a public fork.
+
+### 1. Dashboard and Samsung TV remote
+
+This recording is a dashboard walkthrough using one Samsung TV. The Samsung TV
+network setting and pairing approval were completed before the recording began,
+so the video is not a complete first-install pairing demonstration. On a new
+installation, follow the [Samsung pairing guide](#samsung-tv) first: wake the
+TV, enable its network remote settings, run a scan, choose **Pair TV**, and
+accept the prompt on the TV. Only then should the remote controls be expected
+to work.
+
+The dashboard flow shown is:
+
+1. Open the bridge dashboard on the host computer or on a phone/tablet using
+   the one-time QR link.
+2. Scan the trusted home Wi-Fi and open the identified Samsung TV.
+3. Read the device status and pairing/access guidance before sending commands.
+4. Use the remote page for power-off, volume, mute, navigation, source, and
+   playback commands supported by that TV.
+
+### 2. CLI setup and phone dashboard
+
+This recording demonstrates the terminal setup wizard, including the choices
+for dashboard access, visible device groups, optional Telegram, and the phone
+QR flow. The recommended release install does not require Node.js, npm, Python,
+or Go; the source-build path shown in a terminal is for contributors.
+
+The CLI flow is:
+
+1. Install the published binary and let the first-run wizard open.
+2. Choose **CLI + dashboard** if you want the browser control center.
+3. Choose **This computer + my phone** for a phone remote on the same trusted
+   Wi-Fi, then choose token-protected HTTP unless you specifically need local
+   HTTPS certificates.
+4. Select the device groups to show and answer **No** to chat setup unless you
+   want Telegram.
+5. When setup finishes, scan the printed QR code with the phone Camera app.
+   The QR signs that browser in automatically; a dashboard token is only a
+   manual fallback.
+6. Run `local-device-bridge discover` and
+   `local-device-bridge devices list`, then pair a supported TV from the CLI or
+   dashboard.
+
+For the complete written walkthrough, see [installation.md](docs/installation.md)
+and [docs/cli.md](docs/cli.md).
+
 Release history is documented in [CHANGELOG.md](CHANGELOG.md). The version
 shown by `GET /api/v1/health` matches the published release version.
 
