@@ -1,0 +1,21 @@
+[Unit]
+Description=local-device-bridge LAN device controller
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/local-device-bridge daemon
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+Environment=HOME=%h
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=%h/.config/local-device-bridge
+
+[Install]
+WantedBy=default.target

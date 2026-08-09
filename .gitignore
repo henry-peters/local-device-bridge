@@ -1,0 +1,17 @@
+/local-device-bridge
+/local-device-bridge.exe
+/dist/
+*.db
+*.db-shm
+*.db-wal
+/config.json
+secrets.json
+server.crt
+server.key
+*.crt
+*.key
+*.pem
+*.log
+.env
+.env.*
+.DS_Store

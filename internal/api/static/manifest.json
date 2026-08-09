@@ -1,0 +1,9 @@
+{
+  "name": "Local Device Bridge",
+  "short_name": "Device Bridge",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "description": "A local network remote for supported devices."
+}

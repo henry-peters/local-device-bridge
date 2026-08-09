@@ -1,0 +1,27 @@
+{
+  "server": {
+    "bind": "127.0.0.1:8787",
+    "allow_lan": false,
+    "insecure_lan_http": false
+  },
+  "discovery": {
+    "interfaces": [],
+    "timeout": 5000000000,
+    "scan_interval": 60000000000,
+    "show_display_devices": true,
+    "show_console_devices": false,
+    "show_computer_devices": true,
+    "show_offline_devices": true
+  },
+  "telegram": {
+    "enabled": false,
+    "token_env": "TELEGRAM_BOT_TOKEN",
+    "allowed_ids": [],
+    "allow_public": false
+  },
+  "cli": {
+    "dashboard_enabled": true,
+    "auto_launch_dashboard": true,
+    "show_dashboard_url": true
+  }
+}

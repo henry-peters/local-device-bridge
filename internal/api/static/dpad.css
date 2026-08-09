@@ -1,0 +1,1 @@
+.dpad{flex:1 1 100%;display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:4px}.dpad button{min-width:0;padding:10px 6px}.dpad button:nth-child(3){background:#155b54}
