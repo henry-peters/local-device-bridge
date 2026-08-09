@@ -61,13 +61,13 @@ Python, or Go. Go 1.26+ is needed only to build from source.
 macOS/Linux release install:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/local-device-bridge/local-device-bridge/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/henry-peters/local-device-bridge/main/install.sh | bash
 ```
 
 Install this checkout from source:
 
 ```sh
-git clone https://github.com/local-device-bridge/local-device-bridge.git
+git clone https://github.com/henry-peters/local-device-bridge.git
 cd local-device-bridge
 ./install.sh --from-source
 ```
@@ -91,6 +91,9 @@ The installer opens the setup wizard automatically. It asks, one choice at a tim
 See [installation.md](docs/installation.md) for service, upgrade, certificate,
 and uninstall instructions. See [agent-integration.md](docs/agent-integration.md)
 for connecting an AI agent and pairing supported devices.
+
+Release history is documented in [CHANGELOG.md](CHANGELOG.md). The version
+shown by `GET /api/v1/health` matches the published release version.
 
 ## First test
 
