@@ -350,13 +350,13 @@ func runSetup(configPath string, cfg config.Config, secrets *security.SecretStor
 	if cfg.Server.AllowLAN {
 		cfg.Server.Bind = "0.0.0.0:8787"
 		httpChoice, httpErr := selectMenu(reader, "Which phone connection should be available?", []menuOption{
-			{Label: "HTTPS only", Description: "secure; the phone may need to trust the generated certificate"},
-			{Label: "HTTPS + HTTP compatibility", Description: "easier on phones; HTTP is token-protected but not encrypted"},
-		}, map[bool]int{false: 0, true: 1}[cfg.Server.InsecureLANHTTP])
+			{Label: "HTTP on trusted home Wi-Fi (recommended)", Description: "no certificate warning; token-protected; never expose it publicly"},
+			{Label: "HTTPS with local certificate", Description: "encrypted; each browser may need to trust the generated certificate"},
+		}, map[bool]int{true: 0, false: 1}[cfg.Server.InsecureLANHTTP])
 		if httpErr != nil {
 			return httpErr
 		}
-		cfg.Server.InsecureLANHTTP = httpChoice == 1
+		cfg.Server.InsecureLANHTTP = httpChoice == 0
 	} else {
 		cfg.Server.Bind = "127.0.0.1:8787"
 		cfg.Server.InsecureLANHTTP = false
@@ -511,13 +511,15 @@ func saveSetup(configPath string, cfg config.Config, secrets *security.SecretSto
 		}
 		if cfg.Server.AllowLAN {
 			if cfg.Server.InsecureLANHTTP {
-				fmt.Println("Phone dashboard: enabled over HTTP compatibility mode with browser token protection")
+				fmt.Println("Phone dashboard: enabled over token-protected HTTP on the trusted LAN")
 			} else {
 				fmt.Println("Phone dashboard: enabled with HTTPS and browser token protection")
 			}
 			if cfg.CLI.ShowDashboardURL && !showPhoneAccess {
 				fmt.Println("Dashboard token: hidden during setup; run 'local-device-bridge dashboard token' only when a manual sign-in is needed.")
-				fmt.Println("First visit on this Mac: Chrome may show a certificate warning; run 'local-device-bridge dashboard trust' once, then reload.")
+				if !cfg.Server.InsecureLANHTTP {
+					fmt.Println("First visit on this Mac: Chrome may show a certificate warning; run 'local-device-bridge dashboard trust' once, then reload.")
+				}
 			}
 		} else {
 			fmt.Println("Phone dashboard: disabled; choose 'This computer + my phone' in setup to enable it")
@@ -612,7 +614,7 @@ func printPhoneDashboardAccess(configPath string, cfg config.Config, secrets *se
 	fmt.Println(theme.bold("OPEN THE PHONE DASHBOARD"))
 	if cfg.Server.InsecureLANHTTP {
 		fmt.Printf("  Link: %s\n", terminalLink(pairURL, pairURL))
-		fmt.Println("  HTTP compatibility mode is token-protected and intended only for a trusted home LAN.")
+		fmt.Println("  HTTP is token-protected and intended only for a trusted home LAN; it is not encrypted.")
 	} else {
 		fmt.Printf("  Link: %s\n", terminalLink(pairURL, pairURL))
 		fmt.Println("  If the phone shows a certificate warning, use the browser's Advanced → Proceed option on your trusted home Wi-Fi.")
@@ -810,7 +812,7 @@ func dashboardCertificatePath(cfg config.Config) string {
 }
 
 func printDashboardTrust(cfg config.Config) {
-	if !cfg.Server.AllowLAN {
+	if !cfg.Server.AllowLAN || cfg.Server.InsecureLANHTTP {
 		fmt.Println("LAN HTTPS is disabled; localhost uses HTTP and does not need a certificate.")
 		return
 	}
@@ -931,7 +933,7 @@ func ensureDaemonAndOpenURL(configPath string, cfg config.Config, url string, de
 	}
 	if cfg.Server.AllowLAN && destination == "phone" {
 		if cfg.Server.InsecureLANHTTP {
-			fmt.Println("Opening the phone dashboard over HTTP compatibility mode on the trusted LAN.")
+			fmt.Println("Opening the phone dashboard over token-protected HTTP on the trusted LAN.")
 		} else {
 			fmt.Println("Opening the phone dashboard over HTTPS. The phone may need Advanced → Proceed or the generated certificate installed.")
 		}

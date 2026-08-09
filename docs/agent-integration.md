@@ -40,8 +40,9 @@ code, or URL. The token is unique to this installation and is separate from:
 - the Telegram BotFather token.
 
 The agent API base is the bridge URL followed by `/api/v1`. For a trusted-LAN
-setup it is commonly `https://BRIDGE-HOST:8787/api/v1`; the exact URL and any
-certificate guidance are printed by `local-device-bridge dashboard phone`.
+setup it is commonly `http://BRIDGE-HOST:8787/api/v1`; if HTTPS was selected,
+use `https://BRIDGE-HOST:8787/api/v1`. The exact URL and connection guidance
+are printed by `local-device-bridge dashboard phone`.
 
 Recommended instruction for an agent:
 

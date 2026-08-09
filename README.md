@@ -123,9 +123,9 @@ opens the dashboard and signs that phone in automatically, so no token needs to
 be typed. The printed link is also clickable in modern terminals. Keep the
 phone on the same trusted Wi-Fi. If the QR cannot be used, the dashboard token
 is available as a clearly labeled manual fallback and is not the Agent API or
-Telegram bot token. LAN HTTPS uses a generated private certificate; the setup
-wizard can also enable token-protected HTTP compatibility for trusted home
-LANs whose phone browser rejects private certificates. Never expose the
+Telegram bot token. Phone access uses token-protected HTTP by default on the
+trusted home Wi-Fi, so users do not need to install or trust a certificate.
+HTTPS remains available as an explicit hardened option. Never expose the
 dashboard port to the public internet.
 
 ## Pairing and access
@@ -248,7 +248,7 @@ The tap remote avoids long commands for normal phone use.
   "server": {
     "bind": "127.0.0.1:8787",
     "allow_lan": false,
-    "insecure_lan_http": false
+    "insecure_lan_http": true
   },
   "discovery": {
     "interfaces": [],

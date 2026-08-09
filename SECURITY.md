@@ -8,9 +8,11 @@ The bridge host is intentionally status-only: its own dashboard, CLI, and Telegr
 
 Do not expose port 8787 to the public internet or forward it from a router. Telegram does not require inbound connectivity.
 
-LAN dashboard mode uses a generated private HTTPS certificate. A browser's
-certificate warning is expected until the operator explicitly trusts the
-certificate on that device; use `local-device-bridge dashboard trust` to print
+Trusted-LAN dashboard mode defaults to token-protected HTTP for easier phone
+setup and must only be used on a trusted home network. HTTPS with a generated
+private certificate is available as an explicit hardened option. A browser's
+certificate warning is expected until the operator explicitly trusts that
+certificate on the device; use `local-device-bridge dashboard trust` to print
 the platform command. The bridge does not silently alter OS trust stores.
 
 ## Credentials

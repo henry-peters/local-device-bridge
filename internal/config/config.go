@@ -20,9 +20,9 @@ type Config struct {
 type ServerConfig struct {
 	Bind     string `json:"bind"`
 	AllowLAN bool   `json:"allow_lan"`
-	// InsecureLANHTTP exposes an explicitly opt-in, token-protected HTTP
-	// companion for phones whose browser cannot accept a private certificate.
-	// The primary LAN endpoint remains HTTPS when AllowLAN is enabled.
+	// InsecureLANHTTP exposes a token-protected HTTP endpoint for a trusted home
+	// Wi-Fi. It is the beginner-friendly default so phones do not need to trust
+	// a private certificate. Set it false to require HTTPS instead.
 	InsecureLANHTTP bool   `json:"insecure_lan_http"`
 	TLSCert         string `json:"tls_cert,omitempty"`
 	TLSKey          string `json:"tls_key,omitempty"`
@@ -67,7 +67,7 @@ func Default() Config {
 	}
 	dir = filepath.Join(dir, "local-device-bridge")
 	return Config{
-		Server:    ServerConfig{Bind: "127.0.0.1:8787"},
+		Server:    ServerConfig{Bind: "127.0.0.1:8787", InsecureLANHTTP: true},
 		Discovery: DiscoveryConfig{Timeout: 5 * time.Second, ScanInterval: 60 * time.Second, ShowDisplayDevices: true, ShowConsoleDevices: false, ShowComputerDevices: true, ShowOfflineDevices: true},
 		Telegram:  TelegramConfig{TokenEnv: "TELEGRAM_BOT_TOKEN"},
 		CLI:       CLIConfig{DashboardEnabled: true, AutoLaunchDashboard: true, ShowDashboardURL: true},
