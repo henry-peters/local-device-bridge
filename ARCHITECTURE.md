@@ -92,7 +92,7 @@ Recognized LG/Sony TVs, Windows computers, and Raspberry Pi systems may be liste
 
 ## Configuration
 
-The generated config defaults to localhost-only HTTP, five-second discovery timeouts, informational devices enabled, and Telegram disabled. LAN mode requires explicit HTTPS configuration and browser pairing. Telegram requires an environment-provided bot token plus an allowlist of numeric user/chat IDs.
+The generated config defaults to localhost-only HTTP, five-second discovery timeouts, informational devices enabled, and Telegram disabled. Trusted-LAN mode defaults to token-protected HTTP so phone users do not need certificate setup; HTTPS is an explicit hardened option. Both modes require browser pairing. Telegram requires an environment-provided bot token plus an allowlist of numeric user/chat IDs.
 
 ## Security boundaries
 

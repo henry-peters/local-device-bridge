@@ -92,7 +92,8 @@ The setup wizard is interactive when attached to a terminal:
 1. Choose CLI-only or CLI plus dashboard.
 2. Choose automatic/manual dashboard launch and whether to show its link.
 3. Choose localhost-only or trusted-LAN dashboard access. If LAN access is
-   enabled, choose HTTPS-only or the explicit HTTP phone compatibility link.
+   enabled, choose token-protected HTTP on the trusted home Wi-Fi (recommended)
+   or HTTPS with a local certificate.
 4. Choose the focused inventory groups: TVs & displays and computers (macOS,
    identified Windows computers, and Raspberry Pi).
 5. Answer **Yes — configure chat options** or **No — skip chat setup**. Only
@@ -146,10 +147,12 @@ manual browser fallback. The daemon uses a state-directory lock, so starting `da
 second time exits with a clear already-running message instead of launching a
 duplicate discovery or Telegram process.
 
-When LAN access is enabled, the dashboard URL is HTTPS with a private
-self-signed certificate. A browser warning on the first visit is expected. On
-the trusted home LAN, use **Advanced → Proceed**, or print explicit trust
-instructions with:
+When LAN access is enabled, setup defaults to token-protected HTTP on the
+trusted home Wi-Fi, so phones do not need to install or trust a certificate.
+This mode is not encrypted and must never be exposed to the public internet.
+If HTTPS is selected, the dashboard URL uses a private self-signed certificate;
+a browser warning on the first visit is expected. On the trusted home LAN, use
+**Advanced → Proceed**, or print explicit trust instructions with:
 
 ```sh
 local-device-bridge dashboard cert
@@ -157,11 +160,9 @@ local-device-bridge dashboard trust
 ```
 
 LAN mode provides separate links: the Host link is a loopback-only HTTP
-companion with no certificate warning, while the secure Phone link is HTTPS on
-the LAN address. If a phone browser cannot proceed past a private certificate
-warning, setup can enable HTTP compatibility mode on the main LAN port. That
-mode remains token-protected but is not encrypted, so use it only on a trusted
-home LAN.
+companion, while the Phone link uses the selected LAN mode. HTTP is convenient
+for a trusted home network but is not encrypted; HTTPS is available when the
+operator wants encrypted browser traffic.
 
 After trusting the certificate on the bridge computer, fully reload or reopen
 the browser. The generated certificate includes the current LAN IP and is

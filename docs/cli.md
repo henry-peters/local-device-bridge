@@ -170,18 +170,16 @@ discovery when an address may have changed, and execute only actions listed in
 that device's capabilities. The bearer token is local and private; never put it
 in a repository, public prompt, or public URL.
 
-## LAN dashboard certificates
+## LAN dashboard access
 
-LAN mode uses HTTPS with a generated private certificate. `dashboard open`
-opens the Mac-local dashboard. `dashboard phone` prints the LAN URL for a
-phone; it does not open that phone-only URL in the Mac browser. Scan the QR
-printed by `dashboard phone` instead of typing the URL. When **HTTPS +
-HTTP compatibility** is enabled during setup, it prints both links so a phone
-that rejects private certificates can use the token-protected HTTP link on a
-trusted home network.
-The browser may show a one-time warning
-because the certificate is not issued by a public certificate authority. On a
-trusted home LAN, use the browser's **Advanced → Proceed** option, or run:
+By default, trusted-LAN phone access uses token-protected HTTP, so a phone does
+not need to trust a private certificate. `dashboard open` opens the Mac-local
+dashboard. `dashboard phone` prints the LAN URL for a phone; it does not open
+that phone-only URL in the Mac browser. Scan the QR printed by `dashboard phone`
+instead of typing the URL. If HTTPS was selected during setup, the browser may
+show a one-time warning because the certificate is not issued by a public
+certificate authority. On a trusted home LAN, use the browser's **Advanced →
+Proceed** option, or run:
 
 ```sh
 local-device-bridge dashboard trust
