@@ -94,8 +94,8 @@ The setup wizard is interactive when attached to a terminal:
 3. Choose localhost-only or trusted-LAN dashboard access. If LAN access is
    enabled, choose token-protected HTTP on the trusted home Wi-Fi (recommended)
    or HTTPS with a local certificate.
-4. Choose the focused inventory groups: TVs & displays and computers (macOS,
-   identified Windows computers, and Raspberry Pi).
+4. Choose the focused inventory groups: TVs & displays, Game consoles, and/or
+   computers (macOS, identified Windows computers, and Raspberry Pi).
 5. Answer **Yes — configure chat options** or **No — skip chat setup**. Only
    the Yes path opens Telegram, its bot token, multiple allowed IDs, and the
    private/public choice.
@@ -149,6 +149,15 @@ duplicate discovery or Telegram process.
 
 When LAN access is enabled, setup defaults to token-protected HTTP on the
 trusted home Wi-Fi, so phones do not need to install or trust a certificate.
+
+The phone command prints the QR even when setup output is redirected or the
+installer was launched through a pipe. If a computer has multiple network
+interfaces and the printed address is not the home Wi-Fi address, set the
+optional `server.dashboard_origin` value in `config.json` to the bridge's
+trusted-LAN URL, for example `http://192.168.1.33:8787`, then run
+`local-device-bridge dashboard phone` again. Older configurations that bind
+LAN access to `127.0.0.1` are automatically normalized to a LAN bind when the
+config is loaded.
 This mode is not encrypted and must never be exposed to the public internet.
 If HTTPS is selected, the dashboard URL uses a private self-signed certificate;
 a browser warning on the first visit is expected. On the trusted home LAN, use

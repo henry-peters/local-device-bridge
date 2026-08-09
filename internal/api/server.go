@@ -48,7 +48,7 @@ type sharedSettings struct {
 
 // Version is returned by /api/v1/health so an operator can verify which
 // embedded dashboard and adapter build is actually running.
-const Version = "1.0.3"
+const Version = "1.0.4"
 
 func NewServer(manager *core.Manager, cfg config.Config, secrets *security.SecretStore, logger *slog.Logger) (*Server, error) {
 	token, err := EnsureAccessToken(secrets)
@@ -64,7 +64,7 @@ func NewServer(manager *core.Manager, cfg config.Config, secrets *security.Secre
 	}
 	settings := core.InventoryVisibility{
 		ShowDisplayDevices:  cfg.Discovery.ShowDisplayDevices,
-		ShowConsoleDevices:  false,
+		ShowConsoleDevices:  cfg.Discovery.ShowConsoleDevices,
 		ShowComputerDevices: cfg.Discovery.ShowComputerDevices,
 		ShowOfflineDevices:  cfg.Discovery.ShowOfflineDevices,
 	}
@@ -614,6 +614,7 @@ func (s *Server) deviceGuide(id core.DeviceID) (map[string]any, error) {
 		guide["steps"] = []string{"Open Settings → Network & Internet → Home network → IP control; labels vary by BRAVIA model.", "Sony IP control is model-dependent and authenticated.", "This build keeps controls disabled unless a supported adapter is detected."}
 	case device.Kind == core.DeviceKindConsole:
 		guide["pairing"] = false
+		guide["ready"] = hasCapability(device.Capabilities, core.CapabilityWakeOnLAN)
 		guide["steps"] = consoleGuide(device)
 	default:
 		guide["pairing"] = false
@@ -629,9 +630,9 @@ func consoleGuide(device core.DeviceMetadata) []string {
 	case "xbox":
 		return []string{"Enable Remote features and a network-connected sleep mode on the Xbox.", "Use the official Xbox app for authenticated remote control; no stable public universal LAN power API is exposed here."}
 	case "nintendo":
-		return []string{"Nintendo does not publish a supported LAN remote/power API for this bridge.", "The console is retained as a discovery-only inventory record."}
+		return []string{"Nintendo does not publish a supported LAN remote/power API for this bridge.", "The console remains visible for status and Wake-on-LAN when its MAC address is known; use the official Nintendo control method for shutdown."}
 	default:
-		return []string{"This console is discovered, but no safe supported local control adapter is available."}
+		return []string{"This console is discovered for status and Wake-on-LAN when a MAC address is known.", "No account-backed remote or universal local power-off API is enabled."}
 	}
 }
 
@@ -643,6 +644,7 @@ func (s *Server) decodeSettings(reader io.Reader) (core.InventoryVisibility, err
 	settings := s.currentSettings()
 	values := map[string]*bool{
 		"show_display_devices":  &settings.ShowDisplayDevices,
+		"show_console_devices":  &settings.ShowConsoleDevices,
 		"show_computer_devices": &settings.ShowComputerDevices,
 		"show_offline_devices":  &settings.ShowOfflineDevices,
 	}
@@ -667,14 +669,13 @@ func (s *Server) currentSettings() core.InventoryVisibility {
 }
 
 func (s *Server) updateSettings(settings core.InventoryVisibility) error {
-	settings.ShowConsoleDevices = false
 	if s.configPath != "" {
 		cfg, err := config.Load(s.configPath)
 		if err != nil {
 			return fmt.Errorf("load configuration: %w", err)
 		}
 		cfg.Discovery.ShowDisplayDevices = settings.ShowDisplayDevices
-		cfg.Discovery.ShowConsoleDevices = false
+		cfg.Discovery.ShowConsoleDevices = settings.ShowConsoleDevices
 		cfg.Discovery.ShowComputerDevices = settings.ShowComputerDevices
 		cfg.Discovery.ShowOfflineDevices = settings.ShowOfflineDevices
 		if err := config.Save(s.configPath, cfg); err != nil {
@@ -692,6 +693,15 @@ func allowedAction(action core.Action) bool {
 	switch action {
 	case core.ActionStatus, core.ActionPowerOn, core.ActionPowerOff, core.ActionVolumeUp, core.ActionVolumeDown, core.ActionVolumeSet, core.ActionMute, core.ActionKey, core.ActionSource, core.ActionChannel:
 		return true
+	}
+	return false
+}
+
+func hasCapability(capabilities []core.Capability, wanted core.Capability) bool {
+	for _, capability := range capabilities {
+		if capability == wanted {
+			return true
+		}
 	}
 	return false
 }

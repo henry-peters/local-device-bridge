@@ -36,13 +36,15 @@ power command. See [Agent integration](docs/agent-integration.md).
 | --- | --- | --- |
 | Samsung Smart TV | repeated SSDP, UPnP metadata, and direct `/api/v2/` probing | on-screen pairing, remote keys, volume, mute, playback, source/channel, power-off, and Wake-on-LAN |
 | Roku TV/player | SSDP plus direct ECP identity probing | ECP remote after **Control by mobile apps** is enabled; Roku has no bridge pairing prompt |
+| PlayStation / Xbox / Nintendo | SSDP/mDNS identity when advertised, plus remembered records | inventory, status, and Wake-on-LAN when a MAC is known; no universal account-backed remote or power-off API |
 | macOS computer | Bonjour and local-host identity | bridge host status only; remote Macs use explicit restricted SSH setup for status, wake, and sleep |
 | LG/Sony/other identified TV | SSDP/mDNS and UPnP metadata | identification and model-specific guidance only; no fake Pair button or remote |
 | Windows computers / Raspberry Pi | advertised network identity, bounded Windows service probe, or Raspberry Pi identity | identified inventory only; no arbitrary shell or universal pairing claim |
 
 Phones, tablets, anonymous IP rows, speakers, and unrelated IoT devices are not
-part of the focused inventory. They may be observed internally during discovery
-but are not shown as controllable devices.
+part of the focused inventory. Game consoles are included as a separate,
+limited section when enabled. They may be observed internally during discovery
+but are not shown as controllable devices unless a tested capability is present.
 
 Important: live discovery works only while a device is powered on and
 advertising a recognizable protocol or answering a supported vendor endpoint.
@@ -82,7 +84,7 @@ The installer opens the setup wizard automatically. It asks, one choice at a tim
 
 1. CLI-only or CLI plus dashboard.
 2. Automatic browser launch and host/phone dashboard access.
-3. Visible product groups: TVs & displays, or computers (macOS, Windows, and Raspberry Pi).
+3. Visible product groups: TVs & displays, Game consoles, and/or computers (macOS, Windows, and Raspberry Pi).
 4. Whether to configure chat integrations. If yes, Telegram and its private allowlist are shown; if no, chat setup is skipped.
 5. Confirmation before saving and starting the service.
 6. If phone access is enabled, whether to start it now and print a clickable
@@ -192,6 +194,15 @@ enables Remote Login, installs a key, and permits only the fixed status/sleep
 operations. The bridge never stores a Mac password or accepts arbitrary shell
 commands.
 
+### Game consoles
+
+PlayStation, Xbox, and Nintendo records appear in the **Game consoles** section
+when their network service is advertised. The bridge supports status and
+Wake-on-LAN when discovery knows the console MAC address; it does not request
+console accounts or imitate a cloud/mobile-app session. Use the official
+console app for authenticated remote control and shutdown. The dashboard and
+CLI deliberately label universal console power-off as unavailable.
+
 ### Identified-only device families
 
 There is no universal “pair any device” protocol. LG webOS, Sony BRAVIA,
@@ -251,14 +262,15 @@ The tap remote avoids long commands for normal phone use.
   "server": {
     "bind": "127.0.0.1:8787",
     "allow_lan": false,
-    "insecure_lan_http": true
+    "insecure_lan_http": true,
+    "dashboard_origin": ""
   },
   "discovery": {
     "interfaces": [],
     "timeout": 5000000000,
     "scan_interval": 60000000000,
     "show_display_devices": true,
-    "show_console_devices": false,
+    "show_console_devices": true,
     "show_computer_devices": true,
     "show_offline_devices": true
   },

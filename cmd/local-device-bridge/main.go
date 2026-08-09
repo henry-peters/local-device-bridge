@@ -16,6 +16,7 @@ import (
 	"github.com/local-device-bridge/local-device-bridge/internal/api"
 	"github.com/local-device-bridge/local-device-bridge/internal/cli"
 	"github.com/local-device-bridge/local-device-bridge/internal/config"
+	"github.com/local-device-bridge/local-device-bridge/internal/console"
 	"github.com/local-device-bridge/local-device-bridge/internal/core"
 	"github.com/local-device-bridge/local-device-bridge/internal/daemonlock"
 	"github.com/local-device-bridge/local-device-bridge/internal/discovery"
@@ -91,7 +92,7 @@ func runDaemon(configPath string) error {
 		&discovery.MDNSProvider{Timeout: mdnsTimeout, Interfaces: cfg.Discovery.Interfaces},
 		&discovery.ARPProvider{Interfaces: cfg.Discovery.Interfaces},
 	}
-	manager, err := core.NewManager(state, providers, []core.DeviceFactory{samsung.Factory{Secrets: secrets}, roku.Factory{}, macos.Factory{}})
+	manager, err := core.NewManager(state, providers, []core.DeviceFactory{samsung.Factory{Secrets: secrets}, roku.Factory{}, macos.Factory{}, console.Factory{}})
 	if err != nil {
 		return err
 	}

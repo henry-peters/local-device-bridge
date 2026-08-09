@@ -2,6 +2,25 @@
 
 All notable public releases of `local-device-bridge` are documented here.
 
+## [1.0.4] - 2026-08-09
+
+### Fixed
+
+- Keep the phone QR renderer working when setup is launched through a pipe or
+  another non-TTY output mode.
+- Automatically repair older LAN-enabled configurations that still bind the
+  service to localhost, which prevented phones from connecting.
+- Support an optional `server.dashboard_origin` override for computers with
+  multiple network interfaces.
+
+### Added
+
+- Console inventory and CLI/dashboard support for PlayStation, Xbox, and
+  Nintendo discovery.
+- Safe console status and Wake-on-LAN controls when a MAC address is known,
+  with explicit guidance instead of pretending to support universal console
+  account control or power-off.
+
 ## [1.0.3] - 2026-08-09
 
 ### Fixed

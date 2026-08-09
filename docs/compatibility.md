@@ -7,6 +7,7 @@ adapter recognizes it and advertises the required capabilities.
 | --- | --- | --- | --- |
 | Samsung Smart TV | repeated SSDP, UPnP description, `/api/v2/` probe | tested local WebSocket remote + WOL | on-screen token pairing and network-remote setting |
 | Roku TV/player | SSDP and ECP identity probe | tested ECP remote | **Control by mobile apps**; no pairing prompt |
+| PlayStation / Xbox / Nintendo | SSDP/mDNS when advertised, plus remembered inventory | status and Wake-on-LAN when a MAC is known | enable the console's network-wake setting; official app required for account-backed control |
 | macOS | Bonjour/host identity | host status; remote Mac status/wake/sleep | explicit restricted SSH setup |
 | LG webOS TV | SSDP/mDNS/UPnP when advertised | not implemented | identified only; webOS pairing varies by model |
 | Sony BRAVIA | SSDP/mDNS/UPnP when advertised | not implemented | identified only; IP-control authentication is model-specific |
@@ -14,8 +15,8 @@ adapter recognizes it and advertises the required capabilities.
 
 Unknown ARP peers are retained only as internal evidence and never labeled as a
 TV, display, Mac, Windows computer, or Raspberry Pi. Phones, tablets, audio
-devices, game consoles, and anonymous IP peers are intentionally excluded from
-the focused inventory. Sleeping devices often
+devices, and anonymous IP peers are intentionally excluded from the focused
+inventory. Game consoles are a separate limited inventory category. Sleeping devices often
 advertise no public discovery service, so absence from the inventory is
 expected until a recognizable service appears. An IP address alone is
 intentionally not enough to create a user-facing device record.

@@ -185,7 +185,7 @@ function kindLabel(device) {
 function deviceTheme(device) {
   const category = String(device.category || '');
   if (category === 'tv_display') return {key: 'tv_display', label: 'TVs & displays', machine: device.platform || 'TV / display', role: device.kind === 'monitor' ? 'Display' : 'Television', glyph: 'TV'};
-  if (category === 'console') return {key: 'hidden', label: 'Unsupported inventory', machine: 'Game console', role: 'Not shown', glyph: '—'};
+  if (category === 'console') return {key: 'consoles', label: 'Game consoles', machine: device.platform || 'Game console', role: 'Console', glyph: 'GC'};
   if (category === 'computer') {
     const platform = String(device.platform || '').toLowerCase();
     if (platform === 'macos') return {key: 'macos', label: 'Mac OS', machine: 'macOS', role: 'Mac computer', glyph: '⌘'};
@@ -218,16 +218,20 @@ function isLocalMac(device) {
   return isMacComputer(device) && device.discovery === 'host';
 }
 
+function isConsole(device) {
+  return String(device.category || '') === 'console' || String(device.kind || '') === 'console';
+}
+
 function requiresPairing(device) {
   return isSamsungTV(device) || (isMacComputer(device) && !isLocalMac(device));
 }
 
 function canControl(device) {
-  return (samsungControlAvailable(device) || isRokuTV(device) || isMacComputer(device)) && !device.capabilities?.includes('unsupported');
+  return (samsungControlAvailable(device) || isRokuTV(device) || isMacComputer(device) || isConsole(device)) && !device.capabilities?.includes('unsupported');
 }
 
 function canOperate(device) {
-  return samsungControlAvailable(device) || isRokuTV(device) || (isMacComputer(device) && !isLocalMac(device));
+  return samsungControlAvailable(device) || isRokuTV(device) || (isMacComputer(device) && !isLocalMac(device)) || (isConsole(device) && device.capabilities?.includes('wake_on_lan'));
 }
 
 function addTextRow(parent, label, value) {
@@ -435,7 +439,9 @@ function homeCard(device, index) {
   card.querySelector('.machine-label').textContent = theme.machine;
   card.querySelector('.device-address').textContent = device.ip || 'Address unavailable';
   card.querySelector('.device-mac').textContent = device.mac || 'Not reported';
-  card.querySelector('.device-access').textContent = canControl(device) ? (requiresPairing(device) && !device.paired ? 'Pairing required' : 'Available') : 'Discovery only';
+  card.querySelector('.device-access').textContent = isConsole(device)
+    ? (canOperate(device) ? 'Wake available' : 'Status only')
+    : canControl(device) ? (requiresPairing(device) && !device.paired ? 'Pairing required' : 'Available') : 'Discovery only';
   const pairingStatus = isLocalMac(device) ? 'Bridge host' : (requiresPairing(device) ? (device.paired ? 'Paired' : 'Setup required') : '');
   card.querySelector('.card-pairing-status').textContent = pairingStatus;
   card.querySelector('.card-pairing-status').hidden = !pairingStatus;
@@ -450,7 +456,7 @@ function sectionForTheme(theme, devicesInTheme, offset) {
   section.innerHTML = `<div class="device-section-heading"><button class="section-toggle" type="button" aria-expanded="true" aria-controls="${contentID}"><span class="section-icon"></span><span class="section-label"><h3></h3><p></p></span><span class="section-count"></span><span class="section-chevron" aria-hidden="true">⌄</span></button></div><div id="${contentID}" class="device-section-content device-cards-grid"></div>`;
   section.querySelector('.section-icon').textContent = theme.glyph;
   section.querySelector('h3').textContent = theme.label;
-  section.querySelector('p').textContent = theme.key === 'tv_display' ? 'Identified televisions and network displays' : theme.key === 'macos' ? 'Apple computers discovered on the LAN' : theme.key === 'windows' ? 'Identified Windows computers on the LAN' : 'Single-board Linux computers with Raspberry Pi identity';
+  section.querySelector('p').textContent = theme.key === 'tv_display' ? 'Identified televisions and network displays' : theme.key === 'consoles' ? 'PlayStation, Xbox, and Nintendo devices on the LAN' : theme.key === 'macos' ? 'Apple computers discovered on the LAN' : theme.key === 'windows' ? 'Identified Windows computers on the LAN' : 'Single-board Linux computers with Raspberry Pi identity';
   const online = devicesInTheme.filter(device => device.online).length;
   section.querySelector('.section-count').textContent = `${online}/${devicesInTheme.length} online`;
   const sectionContent = section.querySelector('.device-cards-grid');
@@ -491,7 +497,7 @@ function renderHome() {
     if (!groups.has(theme.key)) groups.set(theme.key, {theme, devices: []});
     groups.get(theme.key).devices.push(device);
   });
-  const order = ['tv_display', 'macos', 'windows', 'raspberry_pi'];
+  const order = ['tv_display', 'consoles', 'macos', 'windows', 'raspberry_pi'];
   let offset = 0;
   [...groups.values()].sort((left, right) => order.indexOf(left.theme.key) - order.indexOf(right.theme.key)).forEach(group => {
     devices.appendChild(sectionForTheme(group.theme, group.devices, offset));
@@ -591,7 +597,7 @@ function renderPairing(device) {
     if (/playstation/i.test(platform)) steps = 'On PS5: <b>Settings → System → Remote Play → Enable Remote Play</b>. For network wake from Rest Mode: <b>Settings → System → Power Saving → Features Available in Rest Mode</b>, then enable <b>Stay Connected to the Internet</b> and <b>Enable Turning On PS5 from Network</b>. Use Sony PS Remote Play for authenticated control.';
     if (/xbox/i.test(platform)) steps = 'Enable the console’s official Remote features and a network-connected sleep mode, then use the Xbox mobile app for authenticated control. The bridge will not imitate an Xbox account session.';
     if (/nintendo/i.test(platform)) steps = 'Nintendo does not provide a supported LAN remote/power API for this bridge. Discovery is informational only.';
-    area.innerHTML = `<div class="pairing-block"><div class="pairing-heading"><div><p class="eyebrow">CONSOLE ACCESS</p><h3>${platform}</h3></div><span class="pairing-status">Guide</span></div><p class="panel-intro">${steps}</p></div>`;
+    area.innerHTML = `<div class="pairing-block"><div class="pairing-heading"><div><p class="eyebrow">CONSOLE ACCESS</p><h3>${platform}</h3></div><span class="pairing-status is-paired">No pairing needed</span></div><p class="panel-intro">${steps}</p><p class="panel-intro">The bridge never requests a console account, password, or cloud token. Wake-on-LAN is available only when discovery reports a MAC address.</p></div>`;
     return;
   }
 	if (device.kind === 'computer') {
@@ -615,6 +621,19 @@ function renderRemote(device) {
   }
   if (isSamsungTV(device) && !device.paired) {
     detailContent.querySelector('.remote-area').innerHTML = '<div class="unsupported-panel"><div><span class="support-mark">LOCK</span><h3>Controls locked</h3><p>Pair this TV and accept its on-screen prompt. If pairing fails, the Access Rules panel explains whether the TV setting or network connection needs attention.</p><div id="command-feedback" class="command-feedback remote-feedback" aria-live="polite"></div></div></div>';
+    return;
+  }
+  if (isConsole(device)) {
+    const remoteArea = detailContent.querySelector('.remote-area');
+    remoteArea.innerHTML = '<h3>Console power</h3><p class="panel-intro">The bridge supports discovery and Wake-on-LAN only. Use the official console app for account-backed remote control.</p><div class="remote-power"></div><div id="command-feedback" class="command-feedback remote-feedback" aria-live="polite"></div>';
+    const power = remoteArea.querySelector('.remote-power');
+    const wake = remoteButton(power, device, 'Wake console', 'power_on', {}, 'Requires the console to allow network wake and discovery to know its MAC address.');
+    if (!canOperate(device)) {
+      wake.disabled = true;
+      wake.title = 'No MAC address is known yet. Scan while the console is online, then try again.';
+    }
+    const off = remoteButton(power, device, 'Power off unavailable', 'power_off', {}, 'No safe universal local power-off API is available for consoles.');
+    off.disabled = true;
     return;
   }
   if (isMacComputer(device)) {
@@ -827,6 +846,7 @@ async function loadSettings() {
     const data = await api('/api/v1/settings');
     const settings = data.settings || {};
     document.querySelector('#setting-displays').checked = Boolean(settings.show_display_devices);
+    document.querySelector('#setting-consoles').checked = Boolean(settings.show_console_devices);
     document.querySelector('#setting-computers').checked = Boolean(settings.show_computer_devices);
     if (feedback) feedback.hidden = true;
   } catch (error) {
@@ -842,6 +862,7 @@ async function saveSettings(event) {
   const feedback = document.querySelector('#settings-feedback');
   const settings = {
     show_display_devices: document.querySelector('#setting-displays').checked,
+    show_console_devices: document.querySelector('#setting-consoles').checked,
     show_computer_devices: document.querySelector('#setting-computers').checked,
   };
   try {

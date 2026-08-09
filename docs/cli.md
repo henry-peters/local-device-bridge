@@ -25,7 +25,7 @@ The setup order is:
 2. If the dashboard is enabled, choose whether it opens automatically, whether
    its link is shown, and whether access is localhost-only or available to a
    phone on the same trusted Wi-Fi.
-3. Select **TVs & displays** and/or **Computers**. The computer group is limited to macOS, identified Windows computers, and Raspberry Pi. Game consoles, phones, speakers, generic Linux hosts, and anonymous IP devices are not shown.
+3. Select **TVs & displays**, **Game consoles**, and/or **Computers**. The computer group is limited to macOS, identified Windows computers, and Raspberry Pi. Consoles are shown separately and support status plus Wake-on-LAN when a MAC is known; phones, speakers, generic Linux hosts, and anonymous IP devices are not shown.
 4. Answer **Yes — configure chat options** or **No — skip chat setup**. The Yes path then lets you select Telegram and configure it.
 5. Review and save.
 6. If phone access is enabled, choose whether to start the phone dashboard now.
@@ -35,6 +35,11 @@ The setup order is:
 For most people, **CLI + dashboard**, automatic opening, localhost-only access,
 and both focused product groups are the best starting choices. Enable the
 phone link only when the bridge and phone are on the same non-guest network.
+
+The console option does not install a console account or cloud connector. It
+adds a **Game consoles** inventory section and the safe commands `status` and
+`on` (Wake-on-LAN when a MAC is known). Use `local-device-bridge agent guide
+<console>` for the platform-specific network-wake steps.
 
 After setup, running `local-device-bridge` with no command opens the interactive
 CLI home. It shows separate Host and Phone dashboard links, the current

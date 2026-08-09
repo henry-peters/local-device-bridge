@@ -41,7 +41,7 @@ func NewManager(store StateStore, providers []DiscoveryProvider, factories []Dev
 		store:         store,
 		events:        make(chan DeviceMetadata, 32),
 		showDisplays:  true,
-		showConsoles:  false,
+		showConsoles:  true,
 		showComputers: true,
 		showOffline:   true,
 	}
@@ -83,10 +83,7 @@ func (m *Manager) Events() <-chan DeviceMetadata { return m.events }
 func (m *Manager) SetInventoryVisibility(settings InventoryVisibility) {
 	m.mu.Lock()
 	m.showDisplays = settings.ShowDisplayDevices
-	// Consoles are intentionally out of the current inventory scope. Keep the
-	// field for config/API compatibility with older installations, but never
-	// expose console records to the user-facing inventory.
-	m.showConsoles = false
+	m.showConsoles = settings.ShowConsoleDevices
 	m.showComputers = settings.ShowComputerDevices
 	m.showOffline = settings.ShowOfflineDevices
 	m.mu.Unlock()
@@ -507,9 +504,7 @@ func visibleCategory(settings InventoryVisibility, md DeviceMetadata) bool {
 	case CategoryComputer:
 		return settings.ShowComputerDevices
 	case CategoryConsole:
-		// Consoles, speakers, phones, generic Linux hosts, and anonymous LAN
-		// peers are intentionally not part of this release's inventory.
-		return false
+		return settings.ShowConsoleDevices
 	default:
 		// Unknown ARP peers, audio devices, phones, and tablets remain internal
 		// discovery evidence; they are not presented as user-facing devices.
