@@ -2,6 +2,18 @@
 
 All notable public releases of `local-device-bridge` are documented here.
 
+## [1.0.3] - 2026-08-09
+
+### Fixed
+
+- Correct the default release repository in the macOS/Linux and Windows
+  installers so a normal install downloads from the public project repository.
+
+### Release notes
+
+This is the recommended release for new installations. Existing `v1.x` users
+can upgrade normally.
+
 ## [1.0.2] - 2026-08-09
 
 ### Fixed

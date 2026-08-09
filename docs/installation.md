@@ -30,7 +30,7 @@ When this repository has been published and a release exists, the installer can
 be run from a terminal with:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/local-device-bridge/local-device-bridge/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/henry-peters/local-device-bridge/main/install.sh | bash
 ```
 
 The script detects macOS/Linux and Intel/Apple Silicon/ARM64, downloads the

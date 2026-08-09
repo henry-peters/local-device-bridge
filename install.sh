@@ -7,7 +7,7 @@
 # installation.
 set -euo pipefail
 
-REPOSITORY="${LDB_REPOSITORY:-local-device-bridge/local-device-bridge}"
+REPOSITORY="${LDB_REPOSITORY:-henry-peters/local-device-bridge}"
 INSTALL_DIR="${LDB_INSTALL_DIR:-${HOME}/.local/bin}"
 VERSION="${LDB_VERSION:-latest}"
 FROM_SOURCE="${LDB_FROM_SOURCE:-0}"
@@ -23,7 +23,7 @@ Usage:
   ./install.sh --no-setup      install without starting the setup wizard
 
 Environment overrides:
-  LDB_REPOSITORY=owner/repo    GitHub repository (default: local-device-bridge/local-device-bridge)
+  LDB_REPOSITORY=owner/repo    GitHub repository (default: henry-peters/local-device-bridge)
   LDB_INSTALL_DIR=/path        binary destination (default: ~/.local/bin)
   LDB_VERSION=v0.1.3           release tag; latest is used by default
   LDB_FROM_SOURCE=1             build from the current checkout
