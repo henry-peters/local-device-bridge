@@ -102,7 +102,10 @@ included below alongside the written steps.
 
 ### 1. Dashboard and Samsung TV remote
 
-[Watch the dashboard and Samsung TV tutorial](docs/tutorials/dashboard-samsung-tv.mov)
+<video controls preload="metadata" width="100%">
+  <source src="https://raw.githubusercontent.com/henry-peters/local-device-bridge/main/docs/tutorials/dashboard-samsung-tv.mp4" type="video/mp4">
+  Your browser does not support inline video. [Download the dashboard tutorial](https://raw.githubusercontent.com/henry-peters/local-device-bridge/main/docs/tutorials/dashboard-samsung-tv.mp4).
+</video>
 
 This recording is a dashboard walkthrough using one Samsung TV. The Samsung TV
 network setting and pairing approval were completed before the recording began,
@@ -123,7 +126,10 @@ The dashboard flow shown is:
 
 ### 2. CLI setup and phone dashboard
 
-[Watch the CLI and phone setup tutorial](docs/tutorials/cli-phone-setup.mov)
+<video controls preload="metadata" width="100%">
+  <source src="https://raw.githubusercontent.com/henry-peters/local-device-bridge/main/docs/tutorials/cli-phone-setup.mp4" type="video/mp4">
+  Your browser does not support inline video. [Download the CLI tutorial](https://raw.githubusercontent.com/henry-peters/local-device-bridge/main/docs/tutorials/cli-phone-setup.mp4).
+</video>
 
 This recording demonstrates the terminal setup wizard, including the choices
 for dashboard access, visible device groups, optional Telegram, and the phone
