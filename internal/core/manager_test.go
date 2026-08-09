@@ -352,8 +352,8 @@ func TestManagerKeepsKnownDevicesVisibleWhenOffline(t *testing.T) {
 		t.Fatal(err)
 	}
 	items := m.List()
-	if len(items) != 2 {
-		t.Fatalf("known inventory = %+v, want TV and Raspberry Pi only", items)
+	if len(items) != 3 {
+		t.Fatalf("known inventory = %+v, want TV, console, and Raspberry Pi", items)
 	}
 	for _, item := range items {
 		if item.Online {
@@ -365,7 +365,7 @@ func TestManagerKeepsKnownDevicesVisibleWhenOffline(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(refreshed) != 2 {
+	if len(refreshed) != 3 {
 		t.Fatalf("scan inventory = %+v, want remembered offline devices included", refreshed)
 	}
 	for _, item := range refreshed {

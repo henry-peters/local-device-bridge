@@ -161,7 +161,7 @@ func runCLIHome(configPath string, cfg config.Config, secrets *security.SecretSt
 	} else {
 		fmt.Println(theme.cyan("Experience: CLI only · dashboard launch is disabled"))
 	}
-	fmt.Println(theme.dim("Inventory: TVs/displays, macOS, Windows, and Raspberry Pi"))
+	fmt.Println(theme.dim("Inventory: TVs/displays, consoles, macOS, Windows, and Raspberry Pi"))
 	printDashboardLinks(cfg, theme)
 
 	fmt.Println()
@@ -365,14 +365,15 @@ func runSetup(configPath string, cfg config.Config, secrets *security.SecretStor
 	printStep(3, "DEVICE INVENTORY", "Choose the product groups shown in the dashboard, CLI, and Telegram.")
 	inventory, err := selectMultiMenu(reader, "Visible product groups", []menuOption{
 		{Label: "TVs & displays", Description: "Samsung, Roku, LG, Sony, and identified screens"},
+		{Label: "Game consoles", Description: "PlayStation, Xbox, and Nintendo discovery plus safe Wake-on-LAN"},
 		{Label: "Computers", Description: "macOS, identified Windows computers, and Raspberry Pi"},
-	}, []bool{cfg.Discovery.ShowDisplayDevices, cfg.Discovery.ShowComputerDevices})
+	}, []bool{cfg.Discovery.ShowDisplayDevices, cfg.Discovery.ShowConsoleDevices, cfg.Discovery.ShowComputerDevices})
 	if err != nil {
 		return err
 	}
 	cfg.Discovery.ShowDisplayDevices = inventory[0]
-	cfg.Discovery.ShowConsoleDevices = false
-	cfg.Discovery.ShowComputerDevices = inventory[1]
+	cfg.Discovery.ShowConsoleDevices = inventory[1]
+	cfg.Discovery.ShowComputerDevices = inventory[2]
 
 	printStep(4, "CHAT CONNECTIONS", "First choose whether to configure chat integrations. Telegram is optional.")
 	configureChats, err := selectMenu(reader, "Configure chat options now?", []menuOption{
@@ -779,11 +780,16 @@ func dashboardLocalURL(cfg config.Config) string {
 }
 
 func dashboardLANURL(cfg config.Config) string {
+	if origin := strings.TrimRight(strings.TrimSpace(cfg.Server.DashboardOrigin), "/"); origin != "" {
+		if parsed, err := url.Parse(origin); err == nil && (parsed.Scheme == "http" || parsed.Scheme == "https") && parsed.Host != "" {
+			return origin
+		}
+	}
 	_, port, err := net.SplitHostPort(cfg.Server.Bind)
 	if err != nil || port == "" {
 		port = "8787"
 	}
-	host := localIPv4()
+	host := localIPv4(cfg.Discovery.Interfaces)
 	if host == "" {
 		host = "<bridge-computer-ip>"
 	}
@@ -830,7 +836,14 @@ func printDashboardTrust(cfg config.Config) {
 	fmt.Println("On a phone, use the browser's Advanced → Proceed option on your trusted home Wi-Fi, or install the certificate into the phone's trusted certificate store.")
 }
 
-func localIPv4() string {
+func localIPv4(preferredInterfaces []string) string {
+	if len(preferredInterfaces) > 0 {
+		for _, name := range preferredInterfaces {
+			if address := interfaceIPv4(strings.TrimSpace(name)); address != "" {
+				return address
+			}
+		}
+	}
 	// Ask the OS routing table which interface would carry normal traffic. This
 	// avoids printing a VPN, Docker, or stale adapter address just because it
 	// happened to be returned first by net.Interfaces.
@@ -849,21 +862,32 @@ func localIPv4() string {
 		if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
 			continue
 		}
-		addresses, err := iface.Addrs()
-		if err != nil {
-			continue
+		if address := interfaceIPv4(iface.Name); address != "" {
+			return address
 		}
-		for _, address := range addresses {
-			var ip net.IP
-			switch value := address.(type) {
-			case *net.IPNet:
-				ip = value.IP
-			case *net.IPAddr:
-				ip = value.IP
-			}
-			if ip != nil && ip.To4() != nil && !ip.IsLinkLocalUnicast() {
-				return ip.To4().String()
-			}
+	}
+	return ""
+}
+
+func interfaceIPv4(name string) string {
+	iface, err := net.InterfaceByName(name)
+	if err != nil || iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
+		return ""
+	}
+	addresses, err := iface.Addrs()
+	if err != nil {
+		return ""
+	}
+	for _, address := range addresses {
+		var ip net.IP
+		switch value := address.(type) {
+		case *net.IPNet:
+			ip = value.IP
+		case *net.IPAddr:
+			ip = value.IP
+		}
+		if ip != nil && ip.To4() != nil && !ip.IsLinkLocalUnicast() {
+			return ip.To4().String()
 		}
 	}
 	return ""
@@ -1382,7 +1406,7 @@ func renderInventory(output any) {
 		group := inventoryGroup(device)
 		groups[group] = append(groups[group], device)
 	}
-	order := []string{"TVs & displays", "Mac OS", "Windows", "Raspberry Pi"}
+	order := []string{"TVs & displays", "Game consoles", "Mac OS", "Windows", "Raspberry Pi"}
 	visible := 0
 	for _, device := range found {
 		if inventoryGroup(device) != "" {
@@ -1428,6 +1452,8 @@ func inventoryGroup(device map[string]any) string {
 	switch category {
 	case "tv_display":
 		return "TVs & displays"
+	case "console":
+		return "Game consoles"
 	case "computer":
 		platform := strings.ToLower(value(device, "platform", ""))
 		switch platform {
@@ -1636,7 +1662,7 @@ Usage:
   local-device-bridge unpair <ref>            remove saved pairing
   local-device-bridge mac <ref> status|wake|sleep
                                                read/control a remote Mac
-  local-device-bridge device <ref> ...        run a normalized device command
+	local-device-bridge device <ref> ...        run a normalized device command
   local-device-bridge tv <ref> help           show setup and actions
   local-device-bridge remote <ref>            open the interactive TV remote
   local-device-bridge commands                 explain every CLI command
@@ -1689,6 +1715,13 @@ REMOTE // COMMON ACTIONS
   device <device> channel <NUMBER>
   remote <device>                         interactive arrow-key remote
   tv <device> help                        device-specific setup and actions
+
+CONSOLES // SAFE LOCAL SUPPORT
+  device <console> status                 show the latest LAN discovery state
+  device <console> on                     send Wake-on-LAN when a MAC is known
+  device <console> off                    explain why universal power-off is unavailable
+  Consoles do not use bridge pairing. Enable network wake on the console and
+  use the official PlayStation, Xbox, or Nintendo app for account-backed control.
 
 PAIRING
   pair <device>                            follow the device guide

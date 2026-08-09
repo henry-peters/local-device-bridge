@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -68,7 +70,7 @@ func Default() Config {
 	dir = filepath.Join(dir, "local-device-bridge")
 	return Config{
 		Server:    ServerConfig{Bind: "127.0.0.1:8787", InsecureLANHTTP: true},
-		Discovery: DiscoveryConfig{Timeout: 5 * time.Second, ScanInterval: 60 * time.Second, ShowDisplayDevices: true, ShowConsoleDevices: false, ShowComputerDevices: true, ShowOfflineDevices: true},
+		Discovery: DiscoveryConfig{Timeout: 5 * time.Second, ScanInterval: 60 * time.Second, ShowDisplayDevices: true, ShowConsoleDevices: true, ShowComputerDevices: true, ShowOfflineDevices: true},
 		Telegram:  TelegramConfig{TokenEnv: "TELEGRAM_BOT_TOKEN"},
 		CLI:       CLIConfig{DashboardEnabled: true, AutoLaunchDashboard: true, ShowDashboardURL: true},
 		State:     StateConfig{Directory: dir, Database: filepath.Join(dir, "bridge.db")},
@@ -90,6 +92,12 @@ func Load(path string) (Config, error) {
 	if cfg.Server.Bind == "" {
 		cfg.Server.Bind = "127.0.0.1:8787"
 	}
+	// Older configurations could retain a loopback bind after LAN phone access
+	// was enabled. Normalize that combination so the phone service is actually
+	// reachable without asking users to edit JSON by hand.
+	if cfg.Server.AllowLAN {
+		cfg.Server.Bind = lanBind(cfg.Server.Bind)
+	}
 	if cfg.Discovery.Timeout <= 0 {
 		cfg.Discovery.Timeout = 5 * time.Second
 	}
@@ -106,6 +114,21 @@ func Load(path string) (Config, error) {
 		cfg.State.Database = filepath.Join(cfg.State.Directory, "bridge.db")
 	}
 	return cfg, nil
+}
+
+func lanBind(bind string) string {
+	host, port, err := net.SplitHostPort(bind)
+	if err != nil || strings.TrimSpace(port) == "" {
+		return "0.0.0.0:8787"
+	}
+	host = strings.TrimSpace(host)
+	if host == "localhost" || host == "" || host == "0.0.0.0" || host == "::" || host == "[::]" {
+		return net.JoinHostPort("0.0.0.0", port)
+	}
+	if ip := net.ParseIP(strings.Trim(host, "[]")); ip != nil && ip.IsLoopback() {
+		return net.JoinHostPort("0.0.0.0", port)
+	}
+	return bind
 }
 
 func Save(path string, cfg Config) error {
