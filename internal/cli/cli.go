@@ -25,6 +25,7 @@ import (
 	"github.com/local-device-bridge/local-device-bridge/internal/config"
 	"github.com/local-device-bridge/local-device-bridge/internal/core"
 	"github.com/local-device-bridge/local-device-bridge/internal/security"
+	bridgeService "github.com/local-device-bridge/local-device-bridge/internal/service"
 	"golang.org/x/term"
 )
 
@@ -86,6 +87,8 @@ func Run(args []string) error {
 		}
 		fmt.Println(token)
 		return nil
+	case "service":
+		return runService(configPath, args[1:])
 	case "discover":
 		return call(cfg, secrets, http.MethodPost, "/api/v1/discovery/scan", nil, true)
 	case "devices":
@@ -490,6 +493,18 @@ func saveSetup(configPath string, cfg config.Config, secrets *security.SecretSto
 	if err := config.Save(configPath, cfg); err != nil {
 		return err
 	}
+	serviceConfigured := false
+	serviceWarning := ""
+	if cfg.CLI.DashboardEnabled {
+		executable, executableErr := os.Executable()
+		if executableErr != nil {
+			serviceWarning = "automatic restart service could not find the installed executable: " + executableErr.Error()
+		} else if serviceErr := bridgeService.Install(executable, configPath); serviceErr != nil {
+			serviceWarning = "automatic restart service could not be installed: " + serviceErr.Error()
+		} else {
+			serviceConfigured = true
+		}
+	}
 	fmt.Println()
 	fmt.Println(theme.green(theme.bold("✓ SETUP COMPLETE")))
 	fmt.Println("────────────────────────────────────────────────────────────────────────")
@@ -537,6 +552,12 @@ func saveSetup(configPath string, cfg config.Config, secrets *security.SecretSto
 				fmt.Println(theme.green("Dashboard opened in your browser."))
 			}
 		}
+		if serviceConfigured {
+			fmt.Println(theme.green("Dashboard service: running automatically after login and restart"))
+		} else if serviceWarning != "" {
+			fmt.Println(theme.yellow("Dashboard service: " + serviceWarning))
+			fmt.Println(theme.dim("The dashboard can still run now, but install the OS service before relying on it after restart."))
+		}
 	}
 	if cfg.Telegram.Enabled && !cfg.Telegram.AllowPublic {
 		fmt.Println("Telegram commands: private allowlist only")
@@ -565,10 +586,40 @@ func saveSetup(configPath string, cfg config.Config, secrets *security.SecretSto
 		fmt.Println("  Scan the QR, sign in once, then tap Agent API on the phone — no API URL typing is needed.")
 	}
 	fmt.Println()
-	fmt.Println(theme.dim("The configured daemon is already running when setup selected automatic start."))
+	if serviceConfigured {
+		fmt.Println(theme.dim("The operating-system service owns the single daemon process; do not also run 'local-device-bridge daemon' in a terminal."))
+	} else {
+		fmt.Println(theme.dim("The daemon starts when you use dashboard open or run 'local-device-bridge daemon'."))
+	}
 	fmt.Println()
 	fmt.Println("Run local-device-bridge commands for the complete reference.")
 	return nil
+}
+
+func runService(configPath string, args []string) error {
+	if len(args) != 1 {
+		return errors.New("usage: local-device-bridge service install|uninstall")
+	}
+	switch args[0] {
+	case "install":
+		executable, err := os.Executable()
+		if err != nil {
+			return fmt.Errorf("find the installed executable: %w", err)
+		}
+		if err := bridgeService.Install(executable, configPath); err != nil {
+			return err
+		}
+		fmt.Println("local-device-bridge service installed and started")
+		return nil
+	case "uninstall":
+		if err := bridgeService.Uninstall(); err != nil {
+			return err
+		}
+		fmt.Println("local-device-bridge service stopped and removed")
+		return nil
+	default:
+		return errors.New("usage: local-device-bridge service install|uninstall")
+	}
 }
 
 func printDashboardLinks(cfg config.Config, theme cliTheme) {
@@ -1654,6 +1705,8 @@ Usage:
   local-device-bridge cli                     open the interactive CLI home
   local-device-bridge setup                   create config and setup guidance
   local-device-bridge daemon                  run the local service
+  local-device-bridge service install         start at login and restart after failure
+  local-device-bridge service uninstall       stop and remove the automatic service
   local-device-bridge discover                scan the local network
   local-device-bridge devices list            list known devices
   local-device-bridge devices rename <ref> <name>

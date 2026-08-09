@@ -2,6 +2,20 @@
 
 All notable public releases of `local-device-bridge` are documented here.
 
+## [1.0.5] - 2026-08-09
+
+### Added
+
+- Setup automatically registers the dashboard daemon with macOS `launchd`,
+  Linux user `systemd`, or Windows Task Scheduler.
+- Added `local-device-bridge service install|uninstall` for repairing or
+  intentionally removing automatic startup.
+
+### Reliability
+
+- The operating-system supervisor keeps one daemon process alive after login,
+  restart, and unexpected daemon exits.
+
 ## [1.0.4] - 2026-08-09
 
 ### Fixed
