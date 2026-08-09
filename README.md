@@ -97,15 +97,12 @@ for connecting an AI agent and pairing supported devices.
 ## Video tutorials
 
 The project has two complementary tutorial flows: a dashboard walkthrough and
-an interactive CLI/phone setup walkthrough. The written steps below are safe
-to publish and cover both flows.
-
-The original recordings used for this guide are intentionally not included in
-the public repository because they contain private demo device names, LAN
-addresses, and a visible browser QR credential. Publish only redacted copies
-if you want to add video files to a public fork.
+an interactive CLI/phone setup walkthrough. Both redacted recordings are
+included below alongside the written steps.
 
 ### 1. Dashboard and Samsung TV remote
+
+[Watch the dashboard and Samsung TV tutorial](docs/tutorials/dashboard-samsung-tv.mov)
 
 This recording is a dashboard walkthrough using one Samsung TV. The Samsung TV
 network setting and pairing approval were completed before the recording began,
@@ -125,6 +122,8 @@ The dashboard flow shown is:
    playback commands supported by that TV.
 
 ### 2. CLI setup and phone dashboard
+
+[Watch the CLI and phone setup tutorial](docs/tutorials/cli-phone-setup.mov)
 
 This recording demonstrates the terminal setup wizard, including the choices
 for dashboard access, visible device groups, optional Telegram, and the phone
