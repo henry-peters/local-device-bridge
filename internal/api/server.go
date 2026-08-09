@@ -48,7 +48,7 @@ type sharedSettings struct {
 
 // Version is returned by /api/v1/health so an operator can verify which
 // embedded dashboard and adapter build is actually running.
-const Version = "1.0.2"
+const Version = "1.0.3"
 
 func NewServer(manager *core.Manager, cfg config.Config, secrets *security.SecretStore, logger *slog.Logger) (*Server, error) {
 	token, err := EnsureAccessToken(secrets)

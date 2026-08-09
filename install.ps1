@@ -1,7 +1,7 @@
 param(
   [switch]$FromSource,
   [switch]$NoSetup,
-  [string]$Repository = $(if ($env:LDB_REPOSITORY) { $env:LDB_REPOSITORY } else { 'local-device-bridge/local-device-bridge' }),
+  [string]$Repository = $(if ($env:LDB_REPOSITORY) { $env:LDB_REPOSITORY } else { 'henry-peters/local-device-bridge' }),
   [string]$Version = $(if ($env:LDB_VERSION) { $env:LDB_VERSION } else { 'latest' }),
   [string]$InstallDir = $(if ($env:LDB_INSTALL_DIR) { $env:LDB_INSTALL_DIR } else { Join-Path $env:LOCALAPPDATA 'local-device-bridge' })
 )
