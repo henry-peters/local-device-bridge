@@ -2,10 +2,10 @@
 
 ## Dashboard and Samsung TV remote
 
-<video controls preload="metadata" width="100%">
-  <source src="https://raw.githubusercontent.com/henry-peters/local-device-bridge/main/docs/tutorials/dashboard-samsung-tv.mp4" type="video/mp4">
-  Your browser does not support inline video. [Download the dashboard tutorial](https://raw.githubusercontent.com/henry-peters/local-device-bridge/main/docs/tutorials/dashboard-samsung-tv.mp4).
-</video>
+![Dashboard and Samsung TV tutorial preview](dashboard-samsung-tv.gif)
+
+The preview plays directly in this README. For the full-quality recording with
+audio, use the [dashboard tutorial MP4](dashboard-samsung-tv.mp4).
 
 This dashboard walkthrough uses one Samsung TV. Its network access setting and
 pairing approval were completed before recording; follow the written Samsung
@@ -13,10 +13,10 @@ pairing steps for a new TV.
 
 ## CLI setup and phone dashboard
 
-<video controls preload="metadata" width="100%">
-  <source src="https://raw.githubusercontent.com/henry-peters/local-device-bridge/main/docs/tutorials/cli-phone-setup.mp4" type="video/mp4">
-  Your browser does not support inline video. [Download the CLI tutorial](https://raw.githubusercontent.com/henry-peters/local-device-bridge/main/docs/tutorials/cli-phone-setup.mp4).
-</video>
+![CLI setup and phone dashboard tutorial preview](cli-phone-setup.gif)
+
+The preview plays directly in this README. For the full-quality recording with
+audio, use the [CLI tutorial MP4](cli-phone-setup.mp4).
 
 This recording demonstrates the interactive setup wizard and phone-access
 choices. The terminal identity line is redacted, and the recording ends before
