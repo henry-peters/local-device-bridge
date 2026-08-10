@@ -2,6 +2,26 @@
 
 All notable public releases of `local-device-bridge` are documented here.
 
+## [1.0.6] - 2026-08-10
+
+### Security and pairing
+
+- Removed dashboard-generated SSH-key and `sudoers` commands from Mac pairing.
+- Mac pairing now checks existing SSH access and non-privileged power status;
+  it never creates keys, edits target files, stores Mac passwords, or accepts
+  arbitrary shell commands.
+- The CLI now accepts only `pair <device>` and privately prompts for a remote
+  Mac's short account name when required, keeping it out of shell history.
+- Sleep authorization is reported separately and is never silently granted by
+  pairing.
+
+### Reliability
+
+- macOS launchd keeps the daemon alive across network changes and unexpected
+  exits, and `dashboard open` repairs a missing per-user service before using a
+  temporary fallback.
+- Added regression tests for safe Mac probes and persistent service manifests.
+
 ## [1.0.5] - 2026-08-09
 
 ### Added

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net"
+	"strings"
 	"testing"
 
 	"github.com/local-device-bridge/local-device-bridge/internal/core"
@@ -41,6 +42,48 @@ func TestRemoteMacPairRequiresSSHSetup(t *testing.T) {
 	}}
 	if err := device.PairWith(context.Background(), core.PairOptions{}); err == nil {
 		t.Fatal("expected remote Mac pairing setup error")
+	}
+}
+
+func TestRemoteMacPairChecksExistingStatusAccessWithoutSudo(t *testing.T) {
+	var command string
+	device := &Device{metadata: core.DeviceMetadata{ID: "macbook", Kind: core.DeviceKindComputer, Manufacturer: "Apple", Model: "macOS", IP: "192.0.2.10"}, runner: func(_ context.Context, name string, args ...string) ([]byte, error) {
+		if name == "ssh" {
+			command = strings.Join(args, " ")
+		}
+		return []byte("Currently in use by user"), nil
+	}}
+	if err := device.PairWith(context.Background(), core.PairOptions{Username: "alex"}); err != nil {
+		t.Fatal(err)
+	}
+	if !device.metadata.Paired || device.metadata.RemoteUser != "alex" {
+		t.Fatalf("pairing metadata = %#v", device.metadata)
+	}
+	if !strings.Contains(command, "/usr/bin/pmset -g ps") {
+		t.Fatalf("pair probe = %q, want pmset status", command)
+	}
+	if strings.Contains(command, "sudo") {
+		t.Fatalf("pair probe must not require sudo: %q", command)
+	}
+}
+
+func TestRemoteMacStateUsesExistingStatusAccessWithoutSudo(t *testing.T) {
+	var command string
+	device := &Device{metadata: core.DeviceMetadata{ID: "macbook", Kind: core.DeviceKindComputer, Manufacturer: "Apple", Model: "macOS", IP: "192.0.2.10", Paired: true, RemoteUser: "alex"}, runner: func(_ context.Context, name string, args ...string) ([]byte, error) {
+		if name == "ssh" {
+			command = strings.Join(args, " ")
+		}
+		return []byte("Currently in use by user"), nil
+	}}
+	state, err := device.State(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !state.Online || state.Power != "on" {
+		t.Fatalf("state = %#v", state)
+	}
+	if strings.Contains(command, "sudo") {
+		t.Fatalf("status probe must not require sudo: %q", command)
 	}
 }
 

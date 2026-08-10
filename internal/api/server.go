@@ -48,7 +48,7 @@ type sharedSettings struct {
 
 // Version is returned by /api/v1/health so an operator can verify which
 // embedded dashboard and adapter build is actually running.
-const Version = "1.0.5"
+const Version = "1.0.6"
 
 func NewServer(manager *core.Manager, cfg config.Config, secrets *security.SecretStore, logger *slog.Logger) (*Server, error) {
 	token, err := EnsureAccessToken(secrets)
@@ -599,7 +599,7 @@ func (s *Server) deviceGuide(id core.DeviceID) (map[string]any, error) {
 		guide["steps"] = []string{"On the Roku TV, open Settings → System → Advanced system settings → Control by mobile apps.", "Set Control by mobile apps to Enabled.", "Keep the TV and bridge on the same trusted LAN.", "Use the normalized remote commands; Roku does not show a bridge pairing prompt."}
 	case strings.EqualFold(device.Manufacturer, "Apple") && device.Kind == core.DeviceKindComputer:
 		guide["pairing"] = device.Discovery != "host"
-		guide["steps"] = []string{"Enable Remote Login on the target Mac.", "Use the dashboard-generated restricted setup commands.", "Pair the target Mac with its short login name.", "Only status, Wake, and Sleep are exposed; the bridge host remains status-only."}
+		guide["steps"] = []string{"On the target Mac, open System Settings → General → Sharing → Remote Login and allow the account you will use.", "Use your existing SSH key and host-verification policy; local-device-bridge never creates keys, edits authorized_keys, writes sudoers, asks for a Mac password, or runs arbitrary shell commands.", "Enter the target Mac account's short login name, not its friendly device name, Apple ID, or email address, then pair.", "Pairing verifies SSH status access. Wake uses Wake-on-LAN; Sleep is available only when the target Mac administrator has separately allowed that action."}
 	case device.Kind == core.DeviceKindComputer && strings.EqualFold(device.Platform, "Raspberry Pi"):
 		guide["pairing"] = false
 		guide["steps"] = []string{"The Raspberry Pi has been identified on the LAN.", "No remote-login credential is requested because Linux control is not implemented in this release.", "Do not enter an SSH password or key into the dashboard; the device remains inventory-only until a restricted Linux adapter is added and tested."}

@@ -37,7 +37,7 @@ power command. See [Agent integration](docs/agent-integration.md).
 | Samsung Smart TV | repeated SSDP, UPnP metadata, and direct `/api/v2/` probing | on-screen pairing, remote keys, volume, mute, playback, source/channel, power-off, and Wake-on-LAN |
 | Roku TV/player | SSDP plus direct ECP identity probing | ECP remote after **Control by mobile apps** is enabled; Roku has no bridge pairing prompt |
 | PlayStation / Xbox / Nintendo | SSDP/mDNS identity when advertised, plus remembered records | inventory, status, and Wake-on-LAN when a MAC is known; no universal account-backed remote or power-off API |
-| macOS computer | Bonjour and local-host identity | bridge host status only; remote Macs use explicit restricted SSH setup for status, wake, and sleep |
+| macOS computer | Bonjour and local-host identity | bridge host status only; remote Macs use the operator's existing SSH access for status, Wake-on-LAN, and optionally sleep |
 | LG/Sony/other identified TV | SSDP/mDNS and UPnP metadata | identification and model-specific guidance only; no fake Pair button or remote |
 | Windows computers / Raspberry Pi | advertised network identity, bounded Windows service probe, or Raspberry Pi identity | identified inventory only; no arbitrary shell or universal pairing claim |
 
@@ -249,11 +249,14 @@ ECP; use volume steps.
 
 ### macOS computer
 
-The bridge host is status-only and never shows wake or sleep controls. A remote
-Mac page generates the exact restricted setup commands. The user explicitly
-enables Remote Login, installs a key, and permits only the fixed status/sleep
-operations. The bridge never stores a Mac password or accepts arbitrary shell
-commands.
+The bridge host is status-only and never shows wake or sleep controls. For a
+remote Mac, enable **System Settings → General → Sharing → Remote Login** and
+use the short account name that already has access through your normal SSH key
+policy. Pairing only checks `/usr/bin/pmset -g ps` over that existing SSH access.
+The bridge never creates SSH keys, edits `authorized_keys`, writes `sudoers`,
+stores a Mac password, or accepts arbitrary shell commands. Wake uses
+Wake-on-LAN. Sleep requires a separate administrator policy on the target Mac;
+pairing does not silently grant it.
 
 ### Game consoles
 
@@ -281,7 +284,7 @@ local-device-bridge discover
 local-device-bridge devices list
 local-device-bridge devices rename <id-or-name> "Living Room TV"
 local-device-bridge remote <supported-tv-id-or-name>
-local-device-bridge pair <supported-device-id-or-name> [mac-user]
+local-device-bridge pair <supported-device-id-or-name>
 local-device-bridge unpair <supported-device-id-or-name>
 
 local-device-bridge device <id-or-name> status

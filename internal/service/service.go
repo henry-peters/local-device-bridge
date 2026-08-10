@@ -191,8 +191,12 @@ func launchdPlist(executable, configPath, stdoutPath, stderrPath string) string 
   <key>ProgramArguments</key><array>
 ` + args.String() + `  </array>
   <key>RunAtLoad</key><true/>
-  <key>KeepAlive</key><true/>
+  <key>KeepAlive</key><dict>
+    <key>SuccessfulExit</key><false/>
+    <key>NetworkState</key><true/>
+  </dict>
   <key>ThrottleInterval</key><integer>5</integer>
+  <key>ProcessType</key><string>Interactive</string>
   <key>StandardOutPath</key><string>` + xmlText(stdoutPath) + `</string>
   <key>StandardErrorPath</key><string>` + xmlText(stderrPath) + `</string>
 </dict></plist>

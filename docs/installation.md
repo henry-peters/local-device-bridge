@@ -125,6 +125,23 @@ You can repair the service at any time with:
 local-device-bridge service install
 ```
 
+On macOS this is a per-user LaunchAgent, so it starts when that user logs in.
+That is intentional: the bridge uses the user's Keychain without requiring an
+administrator password. If the computer has not reached a user login screen,
+the dashboard is not expected to be available yet. Running `dashboard open`
+repairs the service registration before using a temporary detached fallback,
+and the daemon's process lock prevents two bridge instances from controlling
+the same state.
+
+For remote Mac pairing, the bridge does not generate setup commands. Enable
+**System Settings → General → Sharing → Remote Login** on the target, use your
+normal SSH key and host-verification policy, and enter the target account's
+short login name in the dashboard or the private CLI prompt. The bridge never
+creates keys, edits `authorized_keys`, writes `sudoers`, requests a Mac
+password, or runs arbitrary shell commands. Pairing checks only existing
+`pmset` status access; Wake-on-LAN and any separately authorized sleep action
+are reported independently.
+
 Remove only the automatic service with:
 
 ```sh
@@ -173,7 +190,7 @@ The phone command prints the QR even when setup output is redirected or the
 installer was launched through a pipe. If a computer has multiple network
 interfaces and the printed address is not the home Wi-Fi address, set the
 optional `server.dashboard_origin` value in `config.json` to the bridge's
-trusted-LAN URL, for example `http://192.168.1.33:8787`, then run
+trusted-LAN URL, for example `http://<bridge-ip>:8787`, then run
 `local-device-bridge dashboard phone` again. Older configurations that bind
 LAN access to `127.0.0.1` are automatically normalized to a LAN bind when the
 config is loaded.

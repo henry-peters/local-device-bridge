@@ -100,14 +100,10 @@ func Run(args []string) error {
 		}
 		return errors.New("usage: local-device-bridge devices list | devices rename <id-or-name> <friendly name>")
 	case "pair":
-		if len(args) < 2 || len(args) > 3 {
-			return errors.New("usage: local-device-bridge pair <id-or-name> [mac-username]")
+		if len(args) != 2 {
+			return errors.New("usage: local-device-bridge pair <id-or-name> (Mac account name is requested privately when needed)")
 		}
-		body, err := parsePairOptions(args[2:])
-		if err != nil {
-			return err
-		}
-		return call(cfg, secrets, http.MethodPost, deviceAPIPath(args[1], "/pair"), body, true)
+		return pairDevice(cfg, secrets, args[1])
 	case "unpair":
 		if len(args) != 2 {
 			return errors.New("usage: local-device-bridge unpair <device-id>")
@@ -283,16 +279,39 @@ func printRecommendedSteps(cfg config.Config, theme cliTheme) {
 	}
 }
 
-func parsePairOptions(args []string) (map[string]string, error) {
-	options := map[string]string{}
-	if len(args) == 0 {
-		return nil, nil
+func pairDevice(cfg config.Config, secrets *security.SecretStore, reference string) error {
+	output, err := request(cfg, secrets, http.MethodGet, "/api/v1/devices", nil)
+	if err != nil {
+		return err
 	}
-	if len(args) != 1 || strings.HasPrefix(strings.TrimSpace(args[0]), "-") {
-		return nil, errors.New("pair accepts one Mac username; the device address is discovered automatically")
+	device, err := findDevice(output, reference)
+	if err != nil {
+		return err
 	}
-	options["username"] = strings.TrimSpace(args[0])
-	return options, nil
+	body := map[string]string(nil)
+	if isRemoteMacDevice(device) {
+		if !term.IsTerminal(int(os.Stdin.Fd())) {
+			return errors.New("Mac pairing needs the target Mac's short account name; run this command from an interactive terminal or use the dashboard. It is intentionally not accepted as a command-line argument")
+		}
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Print("Target Mac short account name (not the device name or email): ")
+		username, readErr := reader.ReadString('\n')
+		if readErr != nil && !errors.Is(readErr, io.EOF) {
+			return readErr
+		}
+		username = strings.TrimSpace(username)
+		if username == "" || strings.HasPrefix(username, "-") {
+			return errors.New("a valid short Mac account name is required; it is never passed as a shell option")
+		}
+		body = map[string]string{"username": username}
+	}
+	return call(cfg, secrets, http.MethodPost, deviceAPIPath(fmt.Sprint(device["id"]), "/pair"), body, true)
+}
+
+func isRemoteMacDevice(device map[string]any) bool {
+	return strings.EqualFold(fmt.Sprint(device["kind"]), string(core.DeviceKindComputer)) &&
+		strings.EqualFold(fmt.Sprint(device["manufacturer"]), "Apple") &&
+		!strings.EqualFold(fmt.Sprint(device["discovery"]), "host")
 }
 
 func runSetup(configPath string, cfg config.Config, secrets *security.SecretStore) error {
@@ -1024,6 +1043,26 @@ func ensureDaemonReady(configPath string, cfg config.Config, destination string)
 		ready = dashboardLocalHealth(cfg)
 	}
 	if !ready {
+		// Repair the supervisor before falling back to a detached process. This
+		// makes `dashboard open` recover installations whose launch agent or
+		// user service was removed, while the daemon lock still guarantees one
+		// process if an older manual daemon is present.
+		if cfg.CLI.DashboardEnabled {
+			_ = bridgeService.Install(mustExecutable(), configPath)
+		}
+		deadline := time.Now().Add(3 * time.Second)
+		for time.Now().Before(deadline) {
+			ready = dashboardHealth(cfg)
+			if destination == "Mac" && cfg.Server.AllowLAN {
+				ready = dashboardLocalHealth(cfg)
+			}
+			if ready {
+				break
+			}
+			time.Sleep(150 * time.Millisecond)
+		}
+	}
+	if !ready {
 		executable, err := os.Executable()
 		if err != nil {
 			return fmt.Errorf("find the installed executable: %w", err)
@@ -1056,6 +1095,14 @@ func ensureDaemonReady(configPath string, cfg config.Config, destination string)
 		return errors.New("the daemon did not become ready; run local-device-bridge daemon and try again")
 	}
 	return nil
+}
+
+func mustExecutable() string {
+	executable, err := os.Executable()
+	if err != nil {
+		return ""
+	}
+	return executable
 }
 
 func openDashboard(url string) error {
@@ -1711,7 +1758,7 @@ Usage:
   local-device-bridge devices list            list known devices
   local-device-bridge devices rename <ref> <name>
                                                save a friendly device name
-  local-device-bridge pair <ref> [mac-user]   pair a TV or remote Mac
+  local-device-bridge pair <ref>              pair a TV or remote Mac; prompt for a Mac account privately
   local-device-bridge unpair <ref>            remove saved pairing
   local-device-bridge mac <ref> status|wake|sleep
                                                read/control a remote Mac
@@ -1753,7 +1800,7 @@ PHONE // DASHBOARD ACCESS
 DEVICES // FRIENDLY NAMES
   devices rename <device> "Living Room TV"
   device "Living Room TV" status
-  pair "Living Room TV"
+  pair "Living Room TV"                 pair a TV, or privately enter a Mac account when prompted
   unpair "Living Room TV"
   <device> may be an ID, discovered name, or saved friendly name.
 

@@ -8,38 +8,14 @@ import (
 	"github.com/local-device-bridge/local-device-bridge/internal/config"
 )
 
-func TestParsePairOptions(t *testing.T) {
-	tests := []struct {
-		name string
-		args []string
-		want map[string]string
-	}{
-		{name: "empty", want: nil},
-		{name: "Mac username", args: []string{"remote-user"}, want: map[string]string{"username": "remote-user"}},
+func TestRemoteMacDeviceRequiresPrivatePrompt(t *testing.T) {
+	remote := map[string]any{"kind": "computer", "manufacturer": "Apple", "discovery": "mdns"}
+	host := map[string]any{"kind": "computer", "manufacturer": "Apple", "discovery": "host"}
+	if !isRemoteMacDevice(remote) {
+		t.Fatal("remote Mac was not recognized")
 	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			got, err := parsePairOptions(test.args)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if len(got) != len(test.want) {
-				t.Fatalf("options = %#v, want %#v", got, test.want)
-			}
-			for key, want := range test.want {
-				if got[key] != want {
-					t.Errorf("options[%q] = %q, want %q", key, got[key], want)
-				}
-			}
-		})
-	}
-}
-
-func TestParsePairOptionsRejectsInvalidValues(t *testing.T) {
-	for _, args := range [][]string{{"--ip"}, {"--unknown"}, {"one", "two"}} {
-		if _, err := parsePairOptions(args); err == nil {
-			t.Errorf("parsePairOptions(%q) succeeded, want error", args)
-		}
+	if isRemoteMacDevice(host) {
+		t.Fatal("bridge host must not be treated as a remote Mac")
 	}
 }
 

@@ -313,11 +313,6 @@ input::placeholder { color: #64748b; }
 .mac-setup-guide strong { color: var(--ink); display: block; font-size: 12px; margin: 2px 0 5px; }
 .mac-setup-guide p { color: var(--muted); font-size: 11px; line-height: 1.5; margin: 0 0 9px; }
 .mac-setup-guide b { color: var(--muted-bright); }
-.mac-command-block { background: rgba(2, 6, 23, .54); border: 1px solid rgba(71, 85, 105, .8); border-radius: 9px; margin-top: 9px; overflow: hidden; }
-.mac-command-heading { align-items: center; background: rgba(51, 65, 85, .24); display: flex; gap: 8px; justify-content: space-between; padding: 7px 9px; }
-.mac-command-heading strong { color: var(--muted-bright); font: 9px var(--font-mono); margin: 0; }
-.copy-command { border-color: rgba(34, 211, 238, .35); font-size: 9px; min-height: 28px; padding: 5px 8px; }
-.mac-command-block code { color: #c7d2fe; display: block; font: 9px/1.5 var(--font-mono); overflow-wrap: anywhere; padding: 10px; white-space: pre-wrap; }
 .mac-username-row { display: grid; gap: 7px; margin: 16px 0 10px; }
 .mac-username-row label { color: var(--muted-bright); font: 10px var(--font-mono); }
 .mac-username-row .pairing-input { width: 100%; }

@@ -57,8 +57,8 @@ func (d *Device) PairWith(ctx context.Context, options core.PairOptions) error {
 	if d.metadata.IP == "" {
 		return errors.New("Mac has no network address")
 	}
-	if _, err := d.ssh(ctx, username, "/usr/bin/sudo -n /usr/bin/pmset -g ps"); err != nil {
-		return fmt.Errorf("Mac pairing failed: enable Remote Login, use an SSH key, and allow passwordless sudo for pmset: %w", err)
+	if _, err := d.ssh(ctx, username, "/usr/bin/pmset -g ps"); err != nil {
+		return fmt.Errorf("Mac pairing failed: enable Remote Login and configure normal SSH key access for the target account; local-device-bridge does not change keys or sudoers: %w", err)
 	}
 	d.metadata.RemoteUser = username
 	d.metadata.Paired = true
@@ -86,7 +86,7 @@ func (d *Device) State(ctx context.Context) (core.DeviceState, error) {
 	if d.isLocalHost() {
 		output, err = d.runner(ctx, "/usr/bin/pmset", "-g", "ps")
 	} else {
-		output, err = d.ssh(ctx, d.metadata.RemoteUser, "/usr/bin/sudo -n /usr/bin/pmset -g ps")
+		output, err = d.ssh(ctx, d.metadata.RemoteUser, "/usr/bin/pmset -g ps")
 	}
 	if err != nil {
 		state.Error = err.Error()
@@ -130,7 +130,7 @@ func (d *Device) Execute(ctx context.Context, cmd core.Command) (core.CommandRes
 			_, err = d.ssh(ctx, d.metadata.RemoteUser, "/usr/bin/sudo -n /usr/bin/pmset sleepnow")
 		}
 		if err != nil {
-			return core.CommandResult{}, fmt.Errorf("Mac sleep failed; check Remote Login and passwordless sudo for pmset: %w", err)
+			return core.CommandResult{}, fmt.Errorf("Mac sleep is not authorized on the target; pairing verifies status access but does not change sudoers. Ask the target Mac administrator to allow the specific sleep action, then try again: %w", err)
 		}
 		return core.CommandResult{Message: "Mac sleep command accepted"}, nil
 	default:

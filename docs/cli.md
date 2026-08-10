@@ -78,6 +78,22 @@ local-device-bridge discover
 local-device-bridge pair <device-id>
 ```
 
+The pair command never accepts a Mac username, IP address, SSH option, or
+shell command on the command line. For a remote Mac it first resolves the
+device, then asks privately for the target Mac's short login name so the value
+does not enter shell history. The name is the account name used by Remote
+Login, not the Mac's friendly name, Apple ID, or email address. The dashboard
+uses the same field. Before pairing, enable **System Settings → General →
+Sharing → Remote Login** and configure normal SSH key access yourself. The
+bridge only checks existing status access; it never creates keys, edits
+`authorized_keys`, writes `sudoers`, stores a Mac password, or runs arbitrary
+shell commands.
+
+The bridge host is intentionally status-only. Remote Mac Wake uses
+Wake-on-LAN. Remote Mac sleep needs a separate administrator policy on the
+target Mac and will return a clear authorization error when that policy is not
+present.
+
 ## Terminal remote
 
 For a supported TV with navigation capabilities:

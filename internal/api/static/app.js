@@ -142,13 +142,13 @@ function friendlyError(message) {
     return 'Pair this device first, then try the control again.';
   }
   if (/Mac pairing failed/i.test(text) && /permission denied|publickey|authentication/i.test(text)) {
-    return 'The bridge reached the Mac, but its SSH key was not accepted. Run the “Give the bridge a secure login” command shown above, then pair again.';
+    return 'The bridge reached the Mac, but its existing SSH access was not accepted. Confirm Remote Login, the short account name, and your normal SSH key policy. The bridge does not install keys or change the target Mac.';
   }
   if (/Mac pairing failed/i.test(text) && /sudo|pmset|password/i.test(text)) {
-    return 'SSH is ready, but the restricted Mac power permission is missing. Run the “Allow only Mac power actions” command on the target Mac, then pair again.';
+    return 'The Mac status check needs existing SSH access. Pairing does not configure administrator permissions or store passwords; ask the target Mac administrator to review its local policy.';
   }
   if (/Mac pairing failed/i.test(text)) {
-    return 'Mac pairing could not verify the setup. Confirm Remote Login is on, run both setup commands shown above, and pair again.';
+    return 'Mac pairing could not verify existing access. Confirm Remote Login is on, use the short account name, and make sure the bridge is allowed to SSH to the target Mac.';
   }
   return text;
 }
@@ -252,49 +252,6 @@ function addButton(parent, label, onClick, className = '') {
   return button;
 }
 
-function shellQuote(value) {
-  return `'${String(value || '').replace(/'/g, "'\\''")}'`;
-}
-
-function macSetupCommands(device, username = '') {
-  const target = `${username || 'YOUR_MAC_USERNAME'}@${device.ip || 'TARGET_MAC_IP'}`;
-  const sshCommand = `test -f ~/.ssh/id_ed25519.pub || ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -N ''; cat ~/.ssh/id_ed25519.pub | ssh ${shellQuote(target)} 'umask 077; mkdir -p ~/.ssh; cat >> ~/.ssh/authorized_keys; chmod 600 ~/.ssh/authorized_keys'`;
-  const ruleUser = username || 'YOUR_MAC_USERNAME';
-  const sudoCommand = `printf '%s\\n' ${shellQuote(`${ruleUser} ALL=(root) NOPASSWD: /usr/bin/pmset -g ps, /usr/bin/pmset sleepnow`)} | sudo tee /etc/sudoers.d/local-device-bridge-pmset >/dev/null && sudo chmod 440 /etc/sudoers.d/local-device-bridge-pmset && sudo visudo -cf /etc/sudoers.d/local-device-bridge-pmset`;
-  return {sshCommand, sudoCommand};
-}
-
-async function copyCommand(text, button) {
-  try {
-    await navigator.clipboard.writeText(text);
-    const original = button.textContent;
-    button.textContent = 'Copied';
-    window.setTimeout(() => { button.textContent = original; }, 1400);
-  } catch (_) {
-    button.textContent = 'Copy failed';
-  }
-}
-
-function commandBlock(parent, label, command) {
-  const block = document.createElement('div');
-  block.className = 'mac-command-block';
-  const heading = document.createElement('div');
-  heading.className = 'mac-command-heading';
-  const title = document.createElement('strong');
-  title.textContent = label;
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'copy-command';
-  button.textContent = 'Copy command';
-  const code = document.createElement('code');
-  code.textContent = command;
-  button.addEventListener('click', () => copyCommand(code.textContent, button));
-  heading.append(title, button);
-  block.append(heading, code);
-  parent.appendChild(block);
-  return code;
-}
-
 function route() {
   const parts = window.location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   if (parts[0] === 'settings') return {id: null, settings: true};
@@ -344,7 +301,7 @@ async function pairDevice(id, username = '') {
     if (device && isSamsungTV(device)) await scan(true);
     setPairingProgress(device && isSamsungTV(device)
       ? 'Waiting for the TV… Accept the request shown on the TV.'
-      : 'Checking SSH access and the restricted Mac power permission…');
+      : 'Checking the target Mac’s existing SSH access…');
     const body = {};
     if (username) body.username = username;
     await api(`/api/v1/devices/${encodeURIComponent(id)}/pair`, {method: 'POST', body: JSON.stringify(body)});
@@ -553,7 +510,7 @@ function renderPairing(device) {
   }
   if (isMacComputer(device)) {
     const local = isLocalMac(device);
-    area.innerHTML = `<div class="pairing-block"><div class="pairing-heading"><div><p class="eyebrow">ACCESS RULES</p><h3>${local ? 'Bridge host access' : 'Mac setup guide'}</h3></div><span class="pairing-status ${local || device.paired ? 'is-paired' : ''}">${local ? 'Working here' : status}</span></div>${local ? '<p class="panel-intro mac-pairing-intro">This Mac is running local-device-bridge. It is available for status only, and its power buttons are intentionally hidden.</p>' : '<div class="mac-pairing-intro"><strong>What pairing enables</strong><p>The bridge can check this Mac and send only Wake and Sleep. It cannot open a general terminal, read your files, or run arbitrary commands.</p></div><ol class="mac-setup-guide"><li><span>1</span><div><strong>On the Mac you want to control</strong><p>Open <b>System Settings → General → Sharing</b>, turn on <b>Remote Login</b>, and allow the account you will enter below.</p></div></li><li><span>2</span><div><strong>Give the bridge a secure login</strong><p>On the bridge Mac mini, use the Copy button below, open Terminal, paste it, and press Return. It asks for the target Mac password once so future checks do not need a password.</p><div id="mac-ssh-command-block"></div></div></li><li><span>3</span><div><strong>Allow only Mac power actions</strong><p>On the Mac being controlled, use the second Copy button in Terminal. macOS will ask for your administrator password. This permission covers only power status and sleep.</p><div id="mac-sudo-command-block"></div></div></li><li><span>4</span><div><strong>Finish here</strong><p>Enter the short account name used to sign in to the target Mac, then choose Pair Mac. The bridge will test the setup and show the exact problem if anything is missing.</p></div></li></ol><div class="mac-username-row"><label for="mac-username">Target Mac account name</label><input id="mac-username" class="pairing-input" placeholder="for example: alex" autocomplete="username"></div>'}<div class="pairing-actions" id="pairing-actions"></div><div id="pair-feedback" class="command-feedback" hidden></div></div>`;
+    area.innerHTML = `<div class="pairing-block"><div class="pairing-heading"><div><p class="eyebrow">ACCESS RULES</p><h3>${local ? 'Bridge host access' : 'Mac pairing'}</h3></div><span class="pairing-status ${local || device.paired ? 'is-paired' : ''}">${local ? 'Working here' : status}</span></div>${local ? '<p class="panel-intro mac-pairing-intro">This Mac is running local-device-bridge. It is available for status only, and its power buttons are intentionally hidden.</p>' : '<div class="mac-pairing-intro"><strong>Pairing is an access check, not a remote shell</strong><p>The bridge never creates SSH keys, edits <b>authorized_keys</b>, writes <b>sudoers</b>, asks for a Mac password, or runs arbitrary commands. It checks the target Mac’s existing SSH access and reads its power status.</p></div><ol class="mac-setup-guide"><li><span>1</span><div><strong>Enable Remote Login on the target Mac</strong><p>Open <b>System Settings → General → Sharing → Remote Login</b>. Allow the Mac account you want the bridge to use.</p></div></li><li><span>2</span><div><strong>Use your normal Mac security setup</strong><p>On the bridge computer, make sure your existing SSH key policy can sign in to that account. The bridge does not install or copy keys for you. If your administrator requires it, verify the target’s host identity with your normal SSH client first.</p></div></li><li><span>3</span><div><strong>Enter the short account name</strong><p>Use the account’s short macOS login name, such as <b>alex</b>. Do not use the friendly Mac name, Apple ID, email address, or a command-line option.</p></div></li><li><span>4</span><div><strong>Pair and read the result</strong><p>Choose Pair Mac. Pairing tests status access only. Wake uses Wake-on-LAN; Sleep requires a separate administrator policy on the target Mac and is never configured by this bridge.</p></div></li></ol><div class="mac-username-row"><label for="mac-username">Target Mac short account name</label><input id="mac-username" class="pairing-input" placeholder="for example: alex" autocomplete="username"></div>'}<div class="pairing-actions" id="pairing-actions"></div><div id="pair-feedback" class="command-feedback" hidden></div></div>`;
     const actions = document.querySelector('#pairing-actions');
     if (!local && !device.paired) {
       const input = document.querySelector('#mac-username');
@@ -563,18 +520,6 @@ function renderPairing(device) {
       input.addEventListener('input', () => { pairButton.disabled = !input.value.trim(); });
     } else if (!local) {
       addButton(actions, 'Unpair Mac', () => unpairDevice(device.id), 'danger-button');
-    }
-    if (!local) {
-      const input = document.querySelector('#mac-username');
-      if (device.remote_user) input.value = device.remote_user;
-      const commands = macSetupCommands(device, input.value.trim());
-      const sshCode = commandBlock(document.querySelector('#mac-ssh-command-block'), 'Run on the bridge Mac mini', commands.sshCommand);
-      const sudoCode = commandBlock(document.querySelector('#mac-sudo-command-block'), 'Run on the target Mac', commands.sudoCommand);
-      input.addEventListener('input', () => {
-        const updated = macSetupCommands(device, input.value.trim());
-        sshCode.textContent = updated.sshCommand;
-        sudoCode.textContent = updated.sudoCommand;
-      });
     }
     return;
   }
